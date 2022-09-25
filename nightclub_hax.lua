@@ -525,6 +525,8 @@ for _, stock in pairs(nightclub_values["misc"]["stocks"]) do
 end
 
 
-add_text(CreditsSubmenu, "SpaghettDev - Developer")
+add_text(CreditsSubmenu, "Kiddions - The maker of this amazing menu")
+add_text(CreditsSubmenu, "SpaghettDev - Developer of this script")
 add_text(CreditsSubmenu, "Killa'B's Ultimate Controller - Inspiration")
-add_text(CreditsSubmenu, "Thorben - Amazing Discord Server")
+add_text(CreditsSubmenu, "Mosdest Support - Cool place")
+add_text(CreditsSubmenu, "Thorben's server - Another cool place")
