@@ -10,9 +10,12 @@ require_game_build(2699)
 MainSubmenu = menu.add_submenu("SpaghettDev's Nightclub Hax")
 PresetsSubmenu = MainSubmenu:add_submenu("Sell Presets")
 UsefulSubmenu = MainSubmenu:add_submenu("Useful Things")
+StatsSubmenu = MainSubmenu:add_submenu("Stats Editor")
 StockEditorSubmenu = MainSubmenu:add_submenu("Stock/Unit Values Editor")
 ValuesSubmenu = MainSubmenu:add_submenu("Current Values")
 CreditsSubmenu = MainSubmenu:add_submenu("Credits")
+
+local player_index = "MP" .. stats.get_int("MPPLY_LAST_MP_CHAR")
 
 local global_nightclub = 262145
 local max_stock = 1500000
@@ -117,7 +120,39 @@ local nightclub_values = {
         }
     },
     ["misc"] = {
-        ["popularity"] = "MP" .. stats.get_int("MPPLY_LAST_MP_CHAR") .. "_CLUB_POPULARITY",
+        ["popularity"] = player_index .. "_CLUB_POPULARITY",
+        ["goods_sold"] = {
+            ["stat"] = player_index .. "_LIFETIME_HUB_GOODS_SOLD",
+            ["default"] = 1,
+            ["m_step"] = 1,
+            ["m_max"] = 1000000
+        },
+        ["goods_made"] = {
+            ["stat"] = player_index .. "_LIFETIME_HUB_GOODS_MADE",
+            ["default"] = 1,
+            ["m_step"] = 1,
+            ["m_max"] = 1000000
+        },
+        ["sales_completed"] = {
+            ["stat"] = player_index .. "_HUB_SALES_COMPLETED",
+            ["default"] = 1,
+            ["m_step"] = 1,
+            ["m_max"] = 1000000
+        },
+        ["earnings"] = {
+            ["stat"] = player_index .. "_HUB_EARNINGS",
+            ["default"] = 1,
+            ["m_step"] = 10,
+            ["m_max"] = 100000000
+        },
+        ["pos"] = {
+            ["x"] = -1617.869507,
+            ["y"] = -3013.567871,
+            ["z"] = -76.505043,
+            ["yaw"] = -1.661497,
+            ["roll"] =  0.000000,
+            ["pitch"] =  -0.000000
+        },
         ["safe_limit"] = { -- might do something with this in the future
             ["local"] = 24073,
             ["default"] = 250000
@@ -182,6 +217,15 @@ local nightclub_values = {
             "Printing and Copying",
             "Cash Creation",
             "Cargo and Shipments"
+        },
+        ["stocks_stats"] = {
+            ["Sporting Goods"] = player_index .. "HUB_PROD_TOTAL_1",
+            ["South American Imports"] = player_index .. "HUB_PROD_TOTAL_2",
+            ["Pharmaceutical Research"] = player_index .. "HUB_PROD_TOTAL_3",
+            ["Organic Produce"] = player_index .. "HUB_PROD_TOTAL_4",
+            ["Printing and Copying"] = player_index .. "HUB_PROD_TOTAL_5",
+            ["Cash Creation"] = player_index .. "HUB_PROD_TOTAL_6",
+            ["Cargo and Shipments"] = player_index .. "HUB_PROD_TOTAL_0"
         },
         ["presets"] = {
             [1] = {
@@ -329,7 +373,7 @@ local function add_stock_values_editor(menu_t, stock)
     )
 end
 
----function that resets stock(s) by setting their max units to 0, triggering production, then setting them back to normal
+---function that resets stock(s) by setting their max units to 0, settings their spt to 1, then setting them back to normal
 ---@param stock string | nil
 local function reset_stocks(stock)
     if stock then
@@ -337,6 +381,7 @@ local function reset_stocks(stock)
         menu.trigger_nightclub_production()
         sleep(10)
         set_unit_value(stock, nightclub_values[stock]["unit"]["default"])
+        return
     end
 
     for _, stock_val in pairs(nightclub_values["misc"]["stocks"]) do
@@ -353,6 +398,8 @@ end
 ---@param preset_num integer
 local function activate_preset(preset_num)
     reset_stocks(nil)
+
+    sleep(5)
 
     for _, stock in pairs(nightclub_values["misc"]["presets"][preset_num]["stocks"]) do
         set_stock_value(stock, nightclub_values["misc"]["presets"][preset_num]["values"][stock])
@@ -409,13 +456,21 @@ UsefulSubmenu:add_action(
 UsefulSubmenu:add_action(
     "Teleport to Office",
     function ()
-        localplayer:set_position(-1617.869507, -3013.567871, -76.505043)
-        localplayer:set_rotation(-1.661497, 0.000000, -0.000000)
+        localplayer:set_position(
+            nightclub_values["misc"]["pos"]["x"],
+            nightclub_values["misc"]["pos"]["y"],
+            nightclub_values["misc"]["pos"]["z"]
+        )
+        localplayer:set_rotation(
+            nightclub_values["misc"]["pos"]["yaw"],
+            nightclub_values["misc"]["pos"]["roll"],
+            nightclub_values["misc"]["pos"]["pitch"]
+        )
     end
 )
 
 UsefulSubmenu:add_action(
-    "Reset Stocks To 0",
+    "Reset All Stocks To 0",
     function ()
         reset_stocks(nil)
     end
@@ -499,6 +554,66 @@ UsefulSubmenu:add_array_item(
     end
 )
 
+add_text(UsefulSubmenu, "")
+USReadMeSubmenu = UsefulSubmenu:add_submenu("Read Me")
+
+add_text(USReadMeSubmenu, "About resetting stocks:")
+add_text(USReadMeSubmenu, "When resetting a stock to 0,")
+add_text(USReadMeSubmenu, "please wait a little bit.")
+
+
+StatsSubmenu:add_int_range(
+    "Number of Goods Sold",
+    nightclub_values["misc"]["goods_sold"]["m_step"],
+    nightclub_values["misc"]["goods_sold"]["default"],
+    nightclub_values["misc"]["goods_sold"]["m_max"],
+    function ()
+        return stats.get_int(nightclub_values["misc"]["goods_sold"]["stat"])
+    end,
+    function (value)
+        stats.set_int(nightclub_values["misc"]["goods_sold"]["stat"], value)
+    end
+)
+
+StatsSubmenu:add_int_range(
+    "Number of Goods Made",
+    nightclub_values["misc"]["goods_made"]["m_step"],
+    nightclub_values["misc"]["goods_made"]["default"],
+    nightclub_values["misc"]["goods_made"]["m_max"],
+    function ()
+        return stats.get_int(nightclub_values["misc"]["goods_made"]["stat"])
+    end,
+    function (value)
+        stats.set_int(nightclub_values["misc"]["goods_made"]["stat"], value)
+    end
+)
+
+StatsSubmenu:add_int_range(
+    "Number of Sales",
+    nightclub_values["misc"]["sales_completed"]["m_step"],
+    nightclub_values["misc"]["sales_completed"]["default"],
+    nightclub_values["misc"]["sales_completed"]["m_max"],
+    function ()
+        return stats.get_int(nightclub_values["misc"]["sales_completed"]["stat"])
+    end,
+    function (value)
+        stats.set_int(nightclub_values["misc"]["sales_completed"]["stat"], value)
+    end
+)
+
+StatsSubmenu:add_int_range(
+    "Total Earnings",
+    nightclub_values["misc"]["earnings"]["m_step"],
+    nightclub_values["misc"]["earnings"]["default"],
+    nightclub_values["misc"]["earnings"]["m_max"],
+    function ()
+        return stats.get_int(nightclub_values["misc"]["earnings"]["stat"])
+    end,
+    function (value)
+        stats.set_int(nightclub_values["misc"]["earnings"]["stat"], value)
+    end
+)
+
 
 PresetsSubmenu:add_action(
     "Normal Sell ($2.54mil)",
@@ -513,6 +628,14 @@ PresetsSubmenu:add_action(
         activate_preset(2)
     end
 )
+
+PSReadMeSubmenu = PresetsSubmenu:add_submenu("Read Me")
+add_text(PSReadMeSubmenu, "For the current presets to work you'll need:")
+add_text(PSReadMeSubmenu, "                    Sporting Goods")
+add_text(PSReadMeSubmenu, "                    South American Imports")
+add_text(PSReadMeSubmenu, "                    Organic Produce")
+add_text(PSReadMeSubmenu, "                    Cash Creation")
+add_text(PSReadMeSubmenu, "                    Cargo and Shipments")
 
 
 for _, stock in pairs(nightclub_values["misc"]["stocks"]) do
